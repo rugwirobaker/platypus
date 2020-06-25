@@ -22,7 +22,7 @@ func (res result) Tail() bool {
 
 func TestMux(t *testing.T) {
 	h := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
-		return result{out: "not found"}, nil
+		return result{out: "main"}, nil
 	}
 
 	h1 := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
@@ -43,12 +43,12 @@ func TestMux(t *testing.T) {
 		}, nil
 	}
 
-	mux := platypus.NewMux("*662", platypus.HandlerFunc(h))
+	mux := platypus.NewMux("*662*104#", platypus.NotFoundHandler())
 
-	mux.Handle("*662*1", platypus.HandlerFunc(h1))
-	mux.Handle("*662*2", platypus.HandlerFunc(h1))
-	mux.Handle("*662*2*:phone", platypus.HandlerFunc(h2))
-	mux.Handle("*662*3", platypus.HandlerFunc(h3))
+	mux.Handle("*662*104#", platypus.HandlerFunc(h))
+	mux.Handle("*662*104*1#", platypus.HandlerFunc(h1))
+	mux.Handle("*662*104*1*:phone#", platypus.HandlerFunc(h2))
+	mux.Handle("*662*104*3#", platypus.HandlerFunc(h3))
 
 	cases := []struct {
 		desc string
@@ -56,9 +56,10 @@ func TestMux(t *testing.T) {
 		res  string
 		end  bool
 	}{
-		{desc: "1", cmd: "*662*1#", res: "*662*1", end: false},
-		{desc: "2", cmd: "*662*2*0784675205#", res: "0784675205", end: false},
-		{desc: "3", cmd: "*662*3#", res: "ok", end: true},
+		{desc: "1", cmd: "*662*104#", res: "main", end: false},
+		{desc: "2", cmd: "*662*104*1#", res: "*662*104*1", end: false},
+		{desc: "3", cmd: "*662*104*1*0784675205#", res: "0784675205", end: false},
+		{desc: "4", cmd: "*662*104*3#", res: "ok", end: true},
 	}
 
 	for _, tc := range cases {

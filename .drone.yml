@@ -1,0 +1,27 @@
+---
+kind: pipeline
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: test
+  image: golang:1.13
+  commands:
+  - go test -race ./...
+
+- name: coverage
+  image: golang:1.13
+  environment:
+    CODECOV_TOKEN:
+      from_secret: codecov_token
+  commands:
+  - go test -race -coverprofile=coverage.out -covermode=atomic
+  - curl -s https://codecov.io/bash | bash
+---
+kind: signature
+hmac: d95f114bd2509e34f6574dbcf1e7a65551a50191fb093d7bafafc316e2bba425
+
+...

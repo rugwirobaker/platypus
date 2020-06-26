@@ -8,12 +8,12 @@ import (
 )
 
 type result struct {
-	out string
+	Out string
 	end bool
 }
 
 func (res result) String() string {
-	return res.out
+	return res.Out
 }
 
 func (res result) Tail() bool {
@@ -22,24 +22,24 @@ func (res result) Tail() bool {
 
 func TestMux(t *testing.T) {
 	h := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
-		return result{out: "main"}, nil
+		return platypus.Result{Out: "main"}, nil
 	}
 
 	h1 := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
-		return result{out: cmd.Pattern}, nil
+		return platypus.Result{Out: cmd.Pattern}, nil
 	}
 
 	h2 := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
 		params := platypus.ParamsFromContext(ctx)
-		return result{out: params.GetString("phone")}, nil
+		return platypus.Result{Out: params.GetString("phone")}, nil
 	}
 
 	h3 := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
 		params := platypus.ParamsFromContext(ctx)
 
-		return result{
-			out: "ok",
-			end: params.GetBool("isleaf"),
+		return platypus.Result{
+			Out:  "ok",
+			Leaf: params.GetBool("isleaf"),
 		}, nil
 	}
 

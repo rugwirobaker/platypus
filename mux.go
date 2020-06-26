@@ -83,7 +83,7 @@ func (mux *Mux) HandlerFunc(pattern string, handler func(context.Context, *Comma
 
 // NotFound returns an error indicating that the handler was not found for the given task.
 func NotFound(ctx context.Context, cmd *Command) (Result, error) {
-	return noResult("undefined"), nil
+	return Result{Out: "undefined"}, nil
 }
 
 // NotFoundHandler returns a simple task handler that returns a ``not found`` error.

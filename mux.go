@@ -9,6 +9,8 @@ type ctxKey string
 
 const kparams ctxKey = "params"
 
+const isleaf = "isleaf"
+
 var _ Handler = (*HandlerFunc)(nil)
 var _ Handler = (*Mux)(nil)
 
@@ -48,6 +50,9 @@ func (mux *Mux) Process(ctx context.Context, cmd *Command) (Result, error) {
 
 	node, _ := mux.tree.traverse(strings.Split(cmd.Pattern, "*")[1:], params)
 
+	if node != nil {
+		params.Add(isleaf, node.isLeaf())
+	}
 	ctx = ContextWithParams(ctx, params)
 
 	if node.action != nil {
@@ -72,12 +77,6 @@ func (mux *Mux) Handle(pattern string, handler Handler) {
 
 // HandlerFunc registers the handler function for the given pattern.
 func (mux *Mux) HandlerFunc(pattern string, handler func(context.Context, *Command) (Result, error)) {
-	if pattern[0] != '*' {
-		panic("Path has to start with a *.")
-	}
-	if handler == nil {
-		panic("mux: nil handler")
-	}
 	mux.Handle(pattern, HandlerFunc(handler))
 }
 

@@ -7,47 +7,16 @@ import (
 	"github.com/rugwirobaker/platypus"
 )
 
-type result struct {
-	Out string
-	end bool
-}
-
-func (res result) String() string {
-	return res.Out
-}
-
-func (res result) Tail() bool {
-	return res.end
-}
+const prefix = "*662*104#"
 
 func TestMux(t *testing.T) {
-	h := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
-		return platypus.Result{Out: "main"}, nil
-	}
 
-	h1 := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
-		return platypus.Result{Out: cmd.Pattern}, nil
-	}
+	mux := platypus.NewMux(prefix, platypus.HandlerFunc(h))
 
-	h2 := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
-		params := platypus.ParamsFromContext(ctx)
-		return platypus.Result{Out: params.GetString("phone")}, nil
-	}
-
-	h3 := func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
-		params := platypus.ParamsFromContext(ctx)
-
-		return platypus.Result{
-			Out:  "ok",
-			Leaf: params.GetBool("isleaf"),
-		}, nil
-	}
-
-	mux := platypus.NewMux("*662*104#", platypus.NotFoundHandler())
-
-	mux.Handle("*662*104#", platypus.HandlerFunc(h))
 	mux.Handle("*662*104*1#", platypus.HandlerFunc(h1))
 	mux.Handle("*662*104*1*:phone#", platypus.HandlerFunc(h2))
+	mux.Handle("*662*104*2#", platypus.HandlerFunc(h3))
+	mux.Handle("*662*104*2*:name#", platypus.HandlerFunc(h2))
 	mux.Handle("*662*104*3#", platypus.HandlerFunc(h3))
 
 	cases := []struct {
@@ -58,8 +27,9 @@ func TestMux(t *testing.T) {
 	}{
 		{desc: "1", cmd: "*662*104#", res: "main", end: false},
 		{desc: "2", cmd: "*662*104*1#", res: "*662*104*1", end: false},
-		{desc: "3", cmd: "*662*104*1*0784675205#", res: "0784675205", end: false},
-		{desc: "4", cmd: "*662*104*3#", res: "ok", end: true},
+		{desc: "3", cmd: "*662*104*1*0784675205#", res: "0784675205", end: true},
+		{desc: "4", cmd: "*662*104*2#", res: "ok", end: true},
+		{desc: "5", cmd: "*662*104*3#", res: "ok", end: true},
 	}
 
 	for _, tc := range cases {
@@ -115,4 +85,31 @@ func TestParams(t *testing.T) {
 			}
 		}
 	}
+}
+
+var h = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
+	params := platypus.ParamsFromContext(ctx)
+	return platypus.Result{
+		Out:  "main",
+		Leaf: params.GetBool("isleaf")}, nil
+}
+
+var h1 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
+	return platypus.Result{Out: cmd.Pattern}, nil
+}
+
+var h2 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
+	params := platypus.ParamsFromContext(ctx)
+	return platypus.Result{
+		Out:  params.GetString("phone"),
+		Leaf: params.GetBool("isleaf"),
+	}, nil
+}
+
+var h3 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
+	params := platypus.ParamsFromContext(ctx)
+	return platypus.Result{
+		Out:  "ok",
+		Leaf: params.GetBool("isleaf"),
+	}, nil
 }

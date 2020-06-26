@@ -51,9 +51,6 @@ func (n *node) insertNode(path string, handler Handler) {
 func (n *node) traverse(keys []string, params Params) (*node, string) {
 	key := keys[0]
 
-	if params != nil {
-		params.Add("isleaf", n.isLeaf())
-	}
 	if len(n.children) > 0 {
 		for _, child := range n.children {
 			if child.key == key || child.isParam {
@@ -74,5 +71,5 @@ func (n *node) traverse(keys []string, params Params) (*node, string) {
 }
 
 func (n *node) isLeaf() bool {
-	return len(n.children) > 0
+	return len(n.children) <= 2
 }

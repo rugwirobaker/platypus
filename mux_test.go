@@ -21,7 +21,7 @@ func TestMux(t *testing.T) {
 	mux.Handle("*662*104*2*:name*1#", platypus.HandlerFunc(h3))
 	mux.Handle("*662*104*2*:name", platypus.HandlerFunc(h3))
 
-	mux.Handle("*662*104*3#", platypus.HandlerFunc(h1))
+	mux.HandlerFunc("*662*104*3#", h1)
 
 	cases := []struct {
 		desc string
@@ -33,8 +33,9 @@ func TestMux(t *testing.T) {
 		{desc: "2", cmd: "*662*104*1", res: "*662*104*1", end: false},
 		{desc: "3", cmd: "*662*104*1*0784675205#", res: "0784675205", end: true},
 		{desc: "4", cmd: "*662*104*2*james", res: "james", end: false},
-		{desc: "6", cmd: "*662*104*2*james*1#", res: "james", end: true},
-		{desc: "7", cmd: "*662*104*3#", res: "*662*104*3#", end: true},
+		{desc: "5", cmd: "*662*104*2*james*1#", res: "james", end: true},
+		{desc: "6", cmd: "*662*104*3#", res: "*662*104*3#", end: true},
+		{desc: "6", cmd: "*662*100*4#", res: "undefined", end: false},
 	}
 
 	for _, tc := range cases {
@@ -54,15 +55,16 @@ func TestMux(t *testing.T) {
 	}
 }
 
-func TestParams(t *testing.T) {
+func TestParamsFromContext(t *testing.T) {
 
 	cases := []struct {
 		desc string
 		val  interface{}
+		err  error
 	}{
-		{desc: "string", val: "value"},
-		{desc: "int", val: 10000},
-		{desc: "bool", val: false},
+		{desc: "string", val: "value", err: nil},
+		{desc: "int", val: 10000, err: nil},
+		{desc: "bool", val: false, err: nil},
 	}
 
 	for _, tc := range cases {
@@ -74,17 +76,26 @@ func TestParams(t *testing.T) {
 
 		switch tc.desc {
 		case "string":
-			val := params.GetString(tc.desc)
+			val, err := params.GetString(tc.desc)
+			if err != tc.err {
+				t.Errorf("desc '%s': unexpected error:'%v' expected: '%v'", tc.desc, err, tc.err)
+			}
 			if val != tc.val.(string) {
 				t.Errorf("desc '%s': expected '%s' got '%s'", tc.desc, tc.val.(string), val)
 			}
 		case "int":
-			val := params.GetInt(tc.desc)
+			val, err := params.GetInt(tc.desc)
+			if err != tc.err {
+				t.Errorf("desc '%s': unexpected error:'%v' expected: '%v'", tc.desc, err, tc.err)
+			}
 			if val != tc.val.(int) {
 				t.Errorf("desc '%s': expected '%d' got '%d'", tc.desc, tc.val.(int), val)
 			}
 		case "bool":
-			val := params.GetBool(tc.desc)
+			val, err := params.GetBool(tc.desc)
+			if err != tc.err {
+				t.Errorf("desc '%s': unexpected error:'%v' expected: '%v'", tc.desc, err, tc.err)
+			}
 			if val != tc.val.(bool) {
 				t.Errorf("desc '%s': expected '%v' got '%v'", tc.desc, tc.val.(bool), val)
 			}
@@ -94,31 +105,45 @@ func TestParams(t *testing.T) {
 
 var h = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
 	params := platypus.ParamsFromContext(ctx)
+
+	leafness, _ := params.GetBool("isleaf")
+
 	return platypus.Result{
 		Out:  "main",
-		Leaf: params.GetBool("isleaf")}, nil
+		Leaf: leafness,
+	}, nil
 }
 
 var h1 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
 	params := platypus.ParamsFromContext(ctx)
+
+	leafness, _ := params.GetBool("isleaf")
 	return platypus.Result{
 		Out:  cmd.Pattern,
-		Leaf: params.GetBool("isleaf"),
+		Leaf: leafness,
 	}, nil
 }
 
 var h2 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
 	params := platypus.ParamsFromContext(ctx)
+
+	phone, _ := params.GetString("phone")
+	leafness, _ := params.GetBool("isleaf")
+
 	return platypus.Result{
-		Out:  params.GetString("phone"),
-		Leaf: params.GetBool("isleaf"),
+		Out:  phone,
+		Leaf: leafness,
 	}, nil
 }
 
 var h3 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
 	params := platypus.ParamsFromContext(ctx)
+
+	name, _ := params.GetString("name")
+	leafness, _ := params.GetBool("isleaf")
+
 	return platypus.Result{
-		Out:  params.GetString("name"),
-		Leaf: params.GetBool("isleaf"),
+		Out:  name,
+		Leaf: leafness,
 	}, nil
 }

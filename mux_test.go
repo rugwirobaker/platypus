@@ -11,13 +11,17 @@ const prefix = "*662*104#"
 
 func TestMux(t *testing.T) {
 
-	mux := platypus.NewMux(prefix, platypus.HandlerFunc(h))
+	mux := platypus.New(prefix, platypus.NotFoundHandler())
 
-	mux.Handle("*662*104*1#", platypus.HandlerFunc(h1))
+	mux.Handle("*662*104", platypus.HandlerFunc(h))
+	mux.Handle("*662*104*1", platypus.HandlerFunc(h1))
 	mux.Handle("*662*104*1*:phone#", platypus.HandlerFunc(h2))
-	mux.Handle("*662*104*2#", platypus.HandlerFunc(h3))
-	mux.Handle("*662*104*2*:name#", platypus.HandlerFunc(h2))
-	mux.Handle("*662*104*3#", platypus.HandlerFunc(h3))
+
+	mux.Handle("*662*104*2", platypus.HandlerFunc(h1))
+	mux.Handle("*662*104*2*:name*1#", platypus.HandlerFunc(h3))
+	mux.Handle("*662*104*2*:name", platypus.HandlerFunc(h3))
+
+	mux.Handle("*662*104*3#", platypus.HandlerFunc(h1))
 
 	cases := []struct {
 		desc string
@@ -25,11 +29,12 @@ func TestMux(t *testing.T) {
 		res  string
 		end  bool
 	}{
-		{desc: "1", cmd: "*662*104#", res: "main", end: false},
-		{desc: "2", cmd: "*662*104*1#", res: "*662*104*1", end: false},
+		{desc: "1", cmd: "*662*104", res: "main", end: false},
+		{desc: "2", cmd: "*662*104*1", res: "*662*104*1", end: false},
 		{desc: "3", cmd: "*662*104*1*0784675205#", res: "0784675205", end: true},
-		{desc: "4", cmd: "*662*104*2#", res: "ok", end: true},
-		{desc: "5", cmd: "*662*104*3#", res: "ok", end: true},
+		{desc: "4", cmd: "*662*104*2*james", res: "james", end: false},
+		{desc: "6", cmd: "*662*104*2*james*1#", res: "james", end: true},
+		{desc: "7", cmd: "*662*104*3#", res: "*662*104*3#", end: true},
 	}
 
 	for _, tc := range cases {
@@ -40,11 +45,11 @@ func TestMux(t *testing.T) {
 			t.Error(err)
 		}
 		if tc.res != res.String() {
-			t.Errorf("desc '%s': expected '%s' got '%s'", tc.desc, tc.res, res)
+			t.Errorf("desc '%s': output-> expected '%s' got '%s'", tc.desc, tc.res, res)
 		}
 
 		if res.Tail() != tc.end {
-			t.Errorf("desc '%s': expected '%v' got '%v'", tc.desc, tc.end, res.Tail())
+			t.Errorf("desc '%s': leafness-> expected '%v' got '%v'", tc.desc, tc.end, res.Tail())
 		}
 	}
 }
@@ -95,7 +100,11 @@ var h = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error
 }
 
 var h1 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
-	return platypus.Result{Out: cmd.Pattern}, nil
+	params := platypus.ParamsFromContext(ctx)
+	return platypus.Result{
+		Out:  cmd.Pattern,
+		Leaf: params.GetBool("isleaf"),
+	}, nil
 }
 
 var h2 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
@@ -109,7 +118,7 @@ var h2 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, erro
 var h3 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, error) {
 	params := platypus.ParamsFromContext(ctx)
 	return platypus.Result{
-		Out:  "ok",
+		Out:  params.GetString("name"),
 		Leaf: params.GetBool("isleaf"),
 	}, nil
 }

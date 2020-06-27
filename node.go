@@ -12,6 +12,7 @@ type node struct {
 	children []*node
 	key      string
 	isParam  bool
+	isLeaf   bool
 	action   Handler
 }
 
@@ -27,7 +28,13 @@ func (n *node) insertNode(path string, handler Handler) {
 			return
 		}
 
-		nNode := node{key: key, isParam: false}
+		var leaf = false
+
+		if key[len(key)-1] == '#' {
+			leaf = true
+		}
+
+		nNode := node{key: key, isParam: false, isLeaf: leaf}
 
 		if len(key) > 0 && key[0] == ':' { // check if it is a named param.
 			nNode.isParam = true
@@ -55,9 +62,14 @@ func (n *node) traverse(keys []string, params Params) (*node, string) {
 		for _, child := range n.children {
 			if child.key == key || child.isParam {
 				if child.isParam && params != nil {
-					params.Add(child.key[1:], key)
+					ckey := child.key
+					switch child.isLeaf {
+					case true:
+						params.Add(ckey[1:len(ckey)-1], key[:len(key)-1])
+					case false:
+						params.Add(ckey[1:], key)
+					}
 				}
-
 				next := keys[1:]
 				if len(next) > 0 {
 					return child.traverse(next, params) // tail recursion is it's own reward.
@@ -68,8 +80,4 @@ func (n *node) traverse(keys []string, params Params) (*node, string) {
 	}
 
 	return n, key
-}
-
-func (n *node) isLeaf() bool {
-	return len(n.children) <= 2
 }

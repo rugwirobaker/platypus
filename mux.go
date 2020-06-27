@@ -34,8 +34,8 @@ type Mux struct {
 	notFound Handler
 }
 
-//NewMux ...
-func NewMux(prefix string, notFound Handler) *Mux {
+//New ...
+func New(prefix string, notFound Handler) *Mux {
 	prefix = strings.TrimSuffix(prefix, "#")
 	node := node{key: prefix, isParam: false}
 	return &Mux{tree: &node, notFound: notFound}
@@ -46,12 +46,10 @@ func NewMux(prefix string, notFound Handler) *Mux {
 func (mux *Mux) Process(ctx context.Context, cmd *Command) (Result, error) {
 	params := make(Params)
 
-	cmd.Pattern = strings.TrimSuffix(cmd.Pattern, "#")
-
 	node, _ := mux.tree.traverse(strings.Split(cmd.Pattern, "*")[1:], params)
 
 	if node != nil {
-		params.Add(isleaf, node.isLeaf())
+		params.Add(isleaf, node.isLeaf)
 	}
 	ctx = ContextWithParams(ctx, params)
 
@@ -63,8 +61,6 @@ func (mux *Mux) Process(ctx context.Context, cmd *Command) (Result, error) {
 
 // Handle ...
 func (mux *Mux) Handle(pattern string, handler Handler) {
-	pattern = strings.TrimSuffix(pattern, "#")
-
 	if pattern[0] != '*' {
 		panic("Path has to start with a *.")
 	}

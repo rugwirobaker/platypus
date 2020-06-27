@@ -14,6 +14,12 @@ platypus is a router but for ussd input. It follows the style of http routers in
 4. add a queueing server?
 5. Suggestions are welcome(open an issue) ....
 
+## Usage
+Note that to endicate that a submenu is the last on it's chain you must register it `#`.
+```
+....
+ mux := platypus.New(prefix, platypus.HandlerFunc(notFoundHandler))
+```
 ### Note
 
 It's still work in progress but PRs are so welcome.

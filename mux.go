@@ -60,20 +60,20 @@ func (mux *Mux) Process(ctx context.Context, cmd *Command) (Result, error) {
 }
 
 // Handle ...
-func (mux *Mux) Handle(pattern string, handler Handler) {
+func (mux *Mux) Handle(pattern string, handler Handler, ts Transformer) {
 	if pattern[0] != '*' {
 		panic("Path has to start with a *.")
 	}
 	if handler == nil {
 		panic("mux: nil handler")
 	}
-	mux.tree.insertNode(pattern, handler)
+	mux.tree.insertNode(pattern, handler, ts)
 
 }
 
 // HandlerFunc registers the handler function for the given pattern.
-func (mux *Mux) HandlerFunc(pattern string, handler func(context.Context, *Command) (Result, error)) {
-	mux.Handle(pattern, HandlerFunc(handler))
+func (mux *Mux) HandlerFunc(pattern string, handler func(context.Context, *Command) (Result, error), ts Transformer) {
+	mux.Handle(pattern, HandlerFunc(handler), ts)
 }
 
 // NotFound returns an error indicating that the handler was not found for the given task.

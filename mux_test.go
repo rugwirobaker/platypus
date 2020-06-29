@@ -13,15 +13,15 @@ func TestMux(t *testing.T) {
 
 	mux := platypus.New(prefix, platypus.NotFoundHandler())
 
-	mux.Handle("*662*104", platypus.HandlerFunc(h))
-	mux.Handle("*662*104*1", platypus.HandlerFunc(h1))
-	mux.Handle("*662*104*1*:phone#", platypus.HandlerFunc(h2))
+	mux.Handle("*662*104", platypus.HandlerFunc(h), platypus.TrimTrailHash)
+	mux.Handle("*662*104*1", platypus.HandlerFunc(h1), platypus.TrimTrailHash)
+	mux.Handle("*662*104*1*:phone#", platypus.HandlerFunc(h2), nil)
 
-	mux.Handle("*662*104*2", platypus.HandlerFunc(h1))
-	mux.Handle("*662*104*2*:name*1#", platypus.HandlerFunc(h3))
-	mux.Handle("*662*104*2*:name", platypus.HandlerFunc(h3))
+	mux.Handle("*662*104*2", platypus.HandlerFunc(h1), platypus.TrimTrailHash)
+	mux.Handle("*662*104*2*:name*1#", platypus.HandlerFunc(h3), nil)
+	mux.Handle("*662*104*2*:name", platypus.HandlerFunc(h3), platypus.TrimTrailHash)
 
-	mux.HandlerFunc("*662*104*3#", h1)
+	mux.HandlerFunc("*662*104*3#", h1, nil)
 
 	cases := []struct {
 		desc string
@@ -29,10 +29,10 @@ func TestMux(t *testing.T) {
 		res  string
 		end  bool
 	}{
-		{desc: "1", cmd: "*662*104", res: "main", end: false},
+		{desc: "1", cmd: "*662*104#", res: "main", end: false},
 		{desc: "2", cmd: "*662*104*1", res: "*662*104*1", end: false},
 		{desc: "3", cmd: "*662*104*1*0784675205#", res: "0784675205", end: true},
-		{desc: "4", cmd: "*662*104*2*james", res: "james", end: false},
+		{desc: "4", cmd: "*662*104*2*james#", res: "james", end: false},
 		{desc: "5", cmd: "*662*104*2*james*1#", res: "james", end: true},
 		{desc: "6", cmd: "*662*104*3#", res: "*662*104*3#", end: true},
 		{desc: "6", cmd: "*662*100*4#", res: "undefined", end: false},

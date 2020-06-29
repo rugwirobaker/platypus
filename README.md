@@ -1,5 +1,5 @@
 [![Build Status](https://cloud.drone.io/api/badges/rugwirobaker/platypus/status.svg)](https://cloud.drone.io/rugwirobaker/platypus)
-[![codebeat badge](https://codebeat.co/badges/aeb375cb-8061-44de-8ac1-6ce1a5e8500f)](https://codebeat.co/projects/github-com-rugwirobaker-platypus-master)
+[![codebeat badge](https://codebeat.co/badges/db1a92c0-0835-47bc-a50b-32518a94d529)](https://codebeat.co/projects/github-com-rugwirobaker-platypus-master)
 [![codecov](https://codecov.io/gh/rugwirobaker/platypus/branch/master/graph/badge.svg)](https://codecov.io/gh/rugwirobaker/platypus)
 ## Platypus
 

@@ -46,7 +46,7 @@ func New(prefix string, notFound Handler) *Mux {
 func (mux *Mux) Process(ctx context.Context, cmd *Command) (Result, error) {
 	params := make(Params)
 
-	node, _ := mux.tree.traverse(strings.Split(cmd.Pattern, "*")[1:], params)
+	node, _ := mux.tree.traverse(strings.Split(cmd.Request, "*")[1:], params)
 
 	if node != nil {
 		params.Add(isleaf, node.isLeaf)

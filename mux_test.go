@@ -25,21 +25,21 @@ func TestMux(t *testing.T) {
 
 	cases := []struct {
 		desc string
-		cmd  string
+		req  string
 		res  string
 		end  bool
 	}{
-		{desc: "1", cmd: "*662*104#", res: "main", end: false},
-		{desc: "2", cmd: "*662*104*1", res: "*662*104*1", end: false},
-		{desc: "3", cmd: "*662*104*1*0784675205#", res: "0784675205", end: true},
-		{desc: "4", cmd: "*662*104*2*james#", res: "james", end: false},
-		{desc: "5", cmd: "*662*104*2*james*1#", res: "james", end: true},
-		{desc: "6", cmd: "*662*104*3#", res: "*662*104*3#", end: true},
-		{desc: "6", cmd: "*662*100*4#", res: "undefined", end: false},
+		{desc: "1", req: "*662*104#", res: "main", end: false},
+		{desc: "2", req: "*662*104*1", res: "*662*104*1", end: false},
+		{desc: "3", req: "*662*104*1*0784675205#", res: "0784675205", end: true},
+		{desc: "4", req: "*662*104*2*james#", res: "james", end: false},
+		{desc: "5", req: "*662*104*2*james*1#", res: "james", end: true},
+		{desc: "6", req: "*662*104*3#", res: "*662*104*3#", end: true},
+		{desc: "6", req: "*662*100*4#", res: "undefined", end: false},
 	}
 
 	for _, tc := range cases {
-		cmd := &platypus.Command{tc.cmd}
+		cmd := platypus.NewCommand("350785001001", tc.req)
 
 		res, err := mux.Process(context.Background(), cmd)
 		if err != nil {
@@ -119,7 +119,7 @@ var h1 = func(ctx context.Context, cmd *platypus.Command) (platypus.Result, erro
 
 	leafness, _ := params.GetBool("isleaf")
 	return platypus.Result{
-		Out:  cmd.Pattern,
+		Out:  cmd.Request,
 		Leaf: leafness,
 	}, nil
 }
